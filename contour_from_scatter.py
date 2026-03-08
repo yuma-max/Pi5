@@ -1,15 +1,15 @@
 """
-不規則配置データから等高線（Contour Map）を描画するツール
+Tool for drawing contour maps from irregularly placed data.
 
-平面上の n 個の点 (x, y) と対応する値 z を基に、
-Delaunay 三角分割 → グリッド補間 → 等高線追跡 の流れで滑らかな等高線を生成する。
+Generates smooth contours from n points (x, y) with corresponding z values via:
+Delaunay triangulation -> grid interpolation -> contour tracing.
 """
 
 import numpy as np
 from scipy.interpolate import LinearNDInterpolator, CloughTocher2DInterpolator
 from scipy.spatial import Delaunay
 import matplotlib
-matplotlib.use("Agg")  # ヘッドレス環境でも画像保存可能（対話表示は別途 TkAgg 等を指定可）
+matplotlib.use("Agg")  # Enables image saving in headless environments (use TkAgg etc. for interactive display)
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from typing import Literal, Optional, Tuple, List, Union
@@ -22,21 +22,21 @@ def build_grid(
     margin_ratio: float = 0.1,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    観測点の範囲をカバーする等間隔格子 (X_grid, Y_grid) を生成する。
+    Build an evenly spaced grid (X_grid, Y_grid) covering the observation points.
 
     Parameters
     ----------
     x, y : array-like
-        観測点の x, y 座標
+        x, y coordinates of observation points
     n_grid : int
-        各軸のグリッド数（格子は n_grid × n_grid）
+        Number of grid points per axis (grid is n_grid x n_grid)
     margin_ratio : float
-        範囲外へのマージン（0～1、範囲の割合）
+        Margin outside the range (0-1, fraction of range)
 
     Returns
     -------
     X_grid, Y_grid : ndarray
-        2次元格子座標
+        2D grid coordinates
     """
     x_min, x_max = x.min(), x.max()
     y_min, y_max = y.min(), y.max()
@@ -59,22 +59,22 @@ def interpolate_to_grid(
     method: Literal["linear", "cubic"] = "linear",
 ) -> np.ndarray:
     """
-    Delaunay 三角分割に基づき、格子点上で z を補間する。
+    Interpolate z on grid points based on Delaunay triangulation.
 
     Parameters
     ----------
     x, y, z : array-like
-        観測点の座標と値
+        Coordinates and values of observation points
     X_grid, Y_grid : ndarray
-        格子座標（build_grid の戻り値）
+        Grid coordinates (return value of build_grid)
     method : 'linear' | 'cubic'
-        'linear': 線形補間（三角形内で線形）
-        'cubic': Clough-Tocher スプライン（C1 連続）
+        'linear': Linear interpolation (linear within each triangle)
+        'cubic': Clough-Tocher spline (C1 continuous)
 
     Returns
     -------
     Z_grid : ndarray
-        格子点上の補間値。三角形外は np.nan。
+        Interpolated values on the grid. np.nan outside triangles.
     """
     points = np.column_stack([np.asarray(x, dtype=float), np.asarray(y, dtype=float)])
     z = np.asarray(z, dtype=float).ravel()
@@ -84,9 +84,9 @@ def interpolate_to_grid(
     elif method == "cubic":
         interp = CloughTocher2DInterpolator(points, z, fill_value=np.nan)
     else:
-        raise ValueError("method は 'linear' または 'cubic' を指定してください")
+        raise ValueError("method must be 'linear' or 'cubic'")
 
-    # 格子点をまとめて評価
+    # Evaluate interpolator at all grid points
     grid_points = np.column_stack([X_grid.ravel(), Y_grid.ravel()])
     Z_flat = interp(grid_points)
     Z_grid = Z_flat.reshape(X_grid.shape)
@@ -109,26 +109,26 @@ def plot_contour(
     ax: Optional[plt.Axes] = None,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
-    不規則な (x, y, z) から等高線図を描画する。
+    Draw a contour plot from irregular (x, y, z) data.
 
     Parameters
     ----------
     x, y, z : array-like
-        観測点の座標と値
+        Coordinates and values of observation points
     method : 'linear' | 'cubic'
-        補間方法
+        Interpolation method
     n_grid : int
-        補間用グリッドの解像度
+        Resolution of the interpolation grid
     levels : int or array-like
-        等高線の本数（int）またはレベル値のリスト
+        Number of contour levels (int) or list of level values
     show_scatter : bool
-        観測点をプロットするか
+        Whether to plot observation points
     show_labels : bool
-        等高線にラベルを付けるか
+        Whether to add labels to contour lines
     cmap : str
-        カラーマップ名（matplotlib）
+        Colormap name (matplotlib)
     figsize, title, ax
-        図のサイズ・タイトル・既存 Axes（ax を渡すとその Axes に描画）
+        Figure size, title, and existing Axes (if ax is given, draw on that Axes)
 
     Returns
     -------
@@ -138,13 +138,12 @@ def plot_contour(
     y = np.asarray(y).ravel()
     z = np.asarray(z).ravel()
     if not (len(x) == len(y) == len(z)):
-        raise ValueError("x, y, z の長さを揃えてください")
+        raise ValueError("x, y, z must have the same length")
 
     X_grid, Y_grid = build_grid(x, y, n_grid=n_grid, margin_ratio=0.1)
     Z_grid = interpolate_to_grid(x, y, z, X_grid, Y_grid, method=method)
 
-    # 有効領域（少なくとも1点が含まれる三角形内）のみを使うため、
-    # 外挿で nan になった部分をマスクして contour に渡すと安全
+    # Mask extrapolated NaN regions for safe contour plotting
     Z_plot = np.ma.masked_invalid(Z_grid)
 
     if ax is None:
@@ -152,15 +151,15 @@ def plot_contour(
     else:
         fig = ax.figure
 
-    # 塗りつぶし等高線（背景のグラデーション）
+    # Filled contours (background gradient)
     cs = ax.contourf(X_grid, Y_grid, Z_plot, levels=levels, cmap=cmap, extend="both")
-    # 等高線（線）
+    # Contour lines
     cs_lines = ax.contour(X_grid, Y_grid, Z_plot, levels=levels, colors="k", linewidths=0.5, alpha=0.6)
     if show_labels:
         ax.clabel(cs_lines, inline=True, fontsize=8)
 
     if show_scatter:
-        ax.scatter(x, y, c="black", s=20, alpha=0.8, zorder=5, label="観測点")
+        ax.scatter(x, y, c="black", s=20, alpha=0.8, zorder=5, label="Observation points")
 
     ax.set_xlabel("x")
     ax.set_ylabel("y")
@@ -175,12 +174,12 @@ def plot_contour(
 
 def get_delaunay_triangulation(x: np.ndarray, y: np.ndarray) -> Delaunay:
     """
-    与えられた点の Delaunay 三角分割を返す（デバッグ・可視化用）。
+    Return Delaunay triangulation of the given points (for debugging/visualization).
 
     Parameters
     ----------
     x, y : array-like
-        点の座標
+        Point coordinates
 
     Returns
     -------
@@ -191,7 +190,7 @@ def get_delaunay_triangulation(x: np.ndarray, y: np.ndarray) -> Delaunay:
 
 
 if __name__ == "__main__":
-    # 使用例: ランダムな観測点から等高線を描画
+    # Example: draw contours from random observation points
     np.random.seed(42)
     n = 80
     x = np.random.rand(n) * 10
@@ -206,8 +205,8 @@ if __name__ == "__main__":
         show_scatter=True,
         show_labels=True,
         cmap="viridis",
-        title="不規則データからの等高線（Cubic 補間）",
+        title="Contour from irregular data (Cubic interpolation)",
     )
     plt.tight_layout()
     plt.savefig("contour_example.png", dpi=150, bbox_inches="tight")
-    print("contour_example.png を出力しました")
+    print("Saved contour_example.png")

@@ -1,39 +1,39 @@
-# 不規則データ用 等高線描画ツール（Contour Map）
+# Contour Map Tool for Irregular Data
 
-平面上に不規則に配置された $n$ 個の点 $(x, y)$ と、それに対応する値 $z$ を基に、xy 平面上に滑らかな**等高線（Contour Map）**を描画するためのツールです。
+A tool for drawing smooth **contour maps** on the xy-plane from $n$ irregularly placed points $(x, y)$ with corresponding values $z$.
 
-## 概要
+## Overview
 
-通常、等高線を描画するには整列された格子状のデータ（メッシュデータ）が必要ですが、本プログラムは**線形補間（Linear Interpolation）**および**スプライン補間（Cubic）**を用いることで、ランダムに配置された観測データからでも等高線を生成します。
+Contour plots typically require regularly gridded (mesh) data. This program uses **linear interpolation** and **cubic spline interpolation** to generate contours from randomly placed observation data.
 
-## 主な機能
+## Features
 
-- **不規則データの処理**: 任意の座標 $(x_i, y_i, z_i)$ から等高線を自動生成
-- **補間アルゴリズム**: **Linear**（線形）または **Cubic**（Clough-Tocher スプライン）を選択可能
-- **カラーマップ対応**: データの値に応じたグラデーション表示
-- **カスタマイズ性**: 等高線の間隔（レベル）やラベル表示を自由に設定
+- **Irregular data handling**: Automatically generate contours from arbitrary coordinates $(x_i, y_i, z_i)$
+- **Interpolation algorithms**: Choose **Linear** or **Cubic** (Clough-Tocher spline)
+- **Colormap support**: Gradient display based on data values
+- **Customization**: Freely set contour levels and label display
 
-## 仕組みとアルゴリズム
+## Algorithm
 
-1. **Delaunay 三角分割**: 与えられた $n$ 個の点を結び、重なりのない三角形の網を構築します。
-2. **グリッド補間**: 三角形内を補間し、等間隔の格子状データ $Z_{grid} = f(X_{grid}, Y_{grid})$ を算出します。
-3. **等高線追跡**: 算出された格子に対し、matplotlib の内部でマーチングスクエア法（Marching Squares）等を用いて等高線を抽出・描画します。
+1. **Delaunay triangulation**: Connect the given $n$ points to build a non-overlapping triangular mesh.
+2. **Grid interpolation**: Interpolate within triangles to compute evenly spaced grid data $Z_{grid} = f(X_{grid}, Y_{grid})$.
+3. **Contour tracing**: Extract and draw contours from the computed grid using the Marching Squares algorithm (via matplotlib).
 
-## セットアップ
+## Setup
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 使い方
+## Usage
 
-### 基本的な描画
+### Basic plotting
 
 ```python
 from contour_from_scatter import plot_contour
 import numpy as np
 
-# 観測点 (x, y, z)
+# Observation points (x, y, z)
 x = np.array([...])
 y = np.array([...])
 z = np.array([...])
@@ -42,31 +42,31 @@ fig, ax = plot_contour(x, y, z, method="cubic", levels=20)
 fig.savefig("contour.png")
 ```
 
-### 補間のみ使う場合
+### Interpolation only
 
 ```python
 from contour_from_scatter import build_grid, interpolate_to_grid
 
 X_grid, Y_grid = build_grid(x, y, n_grid=100)
 Z_grid = interpolate_to_grid(x, y, z, X_grid, Y_grid, method="linear")
-# Z_grid を任意の方法で可視化・解析可能
+# Z_grid can be visualized or analyzed as needed
 ```
 
-### コマンドラインからサンプル実行
+### Run sample from command line
 
 ```bash
 python contour_from_scatter.py
 ```
 
-サンプルデータで等高線を描画し、`contour_example.png` を出力します。  
-（ディスプレイのない環境では `MPLBACKEND=Agg` が自動で使われます。Segfault が出る場合は `pip install --upgrade scipy matplotlib` を試してください。）
+This draws contours from sample data and outputs `contour_example.png`.  
+(`MPLBACKEND=Agg` is used automatically in headless environments. If you get a segfault, try `pip install --upgrade scipy matplotlib`.)
 
-## ファイル構成
+## File structure
 
-- `contour_from_scatter.py` … メインの等高線描画モジュール
-- `requirements.txt` … 依存パッケージ（numpy, scipy, matplotlib）
-- `README.md` … 本ドキュメント
+- `contour_from_scatter.py` — Main contour plotting module
+- `requirements.txt` — Dependencies (numpy, scipy, matplotlib)
+- `README.md` — This document
 
-## ライセンス
+## License
 
-Pi5 Project の一部です。
+Part of the Pi5 Project.
