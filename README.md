@@ -19,15 +19,12 @@ Algorithm
 2. Grid interpolation: Interpolate within triangles to compute evenly spaced grid data $Z_{grid} = f(X_{grid}, Y_{grid})$.
 3. Contour tracing: Extract and draw contours from the computed grid.
 
-Setup
-'''
-pip install -r requirements.txt
-'''
+
 Usage
 
 Basic plotting
 '''
-from contour_from_scatter import plot_contour
+from contour_from_discrete import plot_contour
 import numpy as np
 
 # Observation points (x, y, z)
@@ -40,7 +37,7 @@ fig.savefig("contour.png")
 '''
 Interpolation only
 '''
-from contour_from_scatter import build_grid, interpolate_to_grid
+from contour_from_discrete import build_grid, interpolate_to_grid
 
 X_grid, Y_grid = build_grid(x, y, n_grid=100)
 Z_grid = interpolate_to_grid(x, y, z, X_grid, Y_grid, method="linear")
@@ -48,13 +45,13 @@ Z_grid = interpolate_to_grid(x, y, z, X_grid, Y_grid, method="linear")
 '''
 Run sample from command line
 '''
-python contour_from_scatter.py
+python contour_from_discrete.py
 '''
 This draws contours from sample data and outputs contour_example.png.
 
 File structure
 
-* contour_from_scatter.py — Main contour plotting module
+* contour_from_discrete.py — Main contour plotting module
 * README.md — This document
 
 License
