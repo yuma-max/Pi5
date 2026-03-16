@@ -91,6 +91,7 @@ def plot_contour(
     levels: Optional[Union[int, List[float], np.ndarray]] = 15,
     cmap: str = "viridis",
     figsize: Tuple[float, float] = (8, 6),
+    z_range: Optional[Tuple[float, float]] = None,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
     Draw a contour plot from irregular (x, y, z) data.
@@ -120,6 +121,12 @@ def plot_contour(
 
     X_grid, Y_grid = build_grid(x, y, n_grid=n_grid, margin_ratio=0.1)
     Z_grid = interpolate_to_grid(x, y, z, X_grid, Y_grid)
+
+    if z_range is not None:
+        z_min, z_max = z_range
+        if z_min >= z_max:
+            raise ValueError("z_range must be (min, max) with min < max")
+        Z_grid = np.clip(Z_grid, z_min, z_max)
 
     # Mask extrapolated NaN regions for safe contour plotting
     Z_plot = np.ma.masked_invalid(Z_grid)
@@ -155,6 +162,7 @@ if __name__ == "__main__":
         n_grid=150,
         levels=20,
         cmap="viridis",
+        z_range=(0.0, 100.0),
     )
     plt.tight_layout()
     plt.savefig("contour_example.png", dpi=150, bbox_inches="tight")
