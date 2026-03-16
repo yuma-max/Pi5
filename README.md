@@ -1,6 +1,6 @@
 Contour Map Tool for Discrete Data
 
-A tool for drawing smooth contour maps on the xy-plane from $n$ points $(x, y)$ with corresponding values $z$. Also, this tool will highlight three areas with high corresponding values within a given range.
+A tool for drawing smooth contour maps on the xy-plane from $n$ points $(x, y)$ with corresponding values $z$. 
 
 Overview
 
@@ -9,10 +9,9 @@ This program uses cubic spline interpolation to generate contours from discrete 
 Features
 
 * Discrete data handling: Automatically generate contours from arbitrary coordinates $(x_i, y_i, z_i)$
-* Finding “Good” points: Show several spots with high z value. 
 * Interpolation algorithms: Clough-Tocher spline
 * Colormap support: Gradient display based on data values
-* Customization: Set the number of areas to highlight, contour levels, and label display.
+* Customization: Set contour levels, and label display.
 
 Algorithm
 
